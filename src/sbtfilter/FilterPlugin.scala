@@ -6,6 +6,10 @@ import Defaults._
 import collection.JavaConversions._
 import java.io.File
 import java.util.Properties
+import sbt.Def.Initialize.joinInitialize
+import sbt.Def.macroValueI
+import sbt.Def.macroValueIT
+import scala.collection.Seq
 
 /* TODO
 - configurable variable delimiters
