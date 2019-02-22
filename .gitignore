@@ -1,11 +1,20 @@
+
+# Projects
+bin/
+
+# Sbt
+project/project
+project/target
 target
 
-*~
-
-.idea
+# Idea
+.idea/
+.idea_modules/
 *.iml
 
-.target
-.scala_dependencies
+# Eclipse
+.metadata/
+.settings/
+.cache*
 .project
 .classpath

@@ -1,7 +1,9 @@
 version := "0.1"
 
 name := "simple"
- 
+
+import sbtfilter.Plugin._
+
 seq(filterSettings: _*)
 
 TaskKey[Unit]("check-compile") <<= (classDirectory in Compile) map { (cd) =>

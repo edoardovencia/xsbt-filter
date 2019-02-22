@@ -12,7 +12,8 @@ import java.util.Properties
 - support web plugin
 - watchSources
 */
-object Plugin extends sbt.Plugin {
+object Plugin extends sbt.AutoPlugin {
+
   import FilterKeys._
   import FileFilter.globFilter
 
@@ -30,40 +31,56 @@ object Plugin extends sbt.Plugin {
     val filterResources = Def.taskKey[Seq[(File, File)]]("Filters all resources.")
   }
 
-  lazy val filterResourcesTask = filterResources <<= filter(copyResources, filterResources) triggeredBy copyResources
+  lazy val filterResourcesTask = filterResources := (filter(copyResources, filterResources) triggeredBy copyResources).value
 
-  def filter(resources: TaskKey[Seq[(File, File)]], task: TaskKey[Seq[(File, File)]]) =
-    (streams, resources in task, includeFilter in task, excludeFilter in task, props) map {
-      (streams, resources, incl, excl, filterProps) =>
-        val props = Map.empty[String, String] ++ filterProps
-        val filtered = resources filter (r => incl.accept(r._1) && !excl.accept(r._1) && !r._1.isDirectory)
-        Filter(streams.log, filtered map (_._2), props)
-        resources
-    }
+  def filter(resources: TaskKey[Seq[(File, File)]], task: TaskKey[Seq[(File, File)]]) = Def.task { 
 
-  lazy val projectPropsTask = projectProps <<= (organization, name, description, version, scalaVersion, sbtVersion) map {
-    (o, n, d, v, scv, sv) =>
-      Seq("organization" -> o, "name" -> n, "description" -> d, "version" -> v, "scalaVersion" -> scv, "sbtVersion" -> sv)
+    val streamsValue = streams.value
+    val resourcesValue = (resources in task).value
+    val inclValue = (includeFilter in task).value
+    val exclValue = (excludeFilter in task).value
+    val filterProps = props.value
+
+    val newProps = Map.empty[String, String] ++ filterProps
+    val filtered = resourcesValue filter (r => inclValue.accept(r._1) && !exclValue.accept(r._1) && !r._1.isDirectory)
+    Filter(streamsValue.log, filtered map (_._2), newProps)
+    resourcesValue
   }
 
-  lazy val unmanagedPropsTask = unmanagedProps <<= (streams, filters) map {
-    (streams, filters) => (Seq.empty[(String, String)] /: filters) { (acc, rf) => acc ++ properties(streams.log, rf) }
+  lazy val projectPropsTask = projectProps := {
+      Seq(
+        "organization" -> organization.value,
+        "name" -> name.value,
+        "description" -> description.value,
+        "version" -> version.value,
+        "scalaVersion" -> scalaVersion.value,
+        "sbtVersion" -> sbtVersion.value
+      )
   }
+
+  lazy val unmanagedPropsTask = unmanagedProps := {
+    val filtersValue = filters.value
+    val streamsValue = streams.value
+    (Seq.empty[(String, String)] /: filtersValue) { (acc, rf) => acc ++ properties(streamsValue.log, rf) }
+  }
+
 
   lazy val filterConfigPaths: Seq[Setting[_]] = Seq(
-    filterDirectory <<= (sourceDirectory, filterDirectoryName) apply { (d, name) => d / name },
-    sourceDirectories in filters <<= Seq(filterDirectory).join,
-    filters <<= collectFiles(sourceDirectories in filters, includeFilter in filters, excludeFilter in filters),
+    filterDirectory := sourceDirectory.value / filterDirectoryName.value,
+    sourceDirectories in filters := (Seq(filterDirectory).join).value,
+    filters := collectFiles(sourceDirectories in filters, includeFilter in filters, excludeFilter in filters).value,
     includeFilter in filters := "*.properties" | "*.xml",
     excludeFilter in filters := HiddenFileFilter,
     includeFilter in filterResources := "*.properties" | "*.xml",
     excludeFilter in filterResources := HiddenFileFilter || ImageFileFilter)
+
   lazy val filterConfigTasks: Seq[Setting[_]] = Seq(
     filterResourcesTask,
-    copyResources in filterResources <<= copyResources,
-    managedProps <<= (projectProps, systemProps, envProps) map (_ ++ _ ++ _),
+    copyResources in filterResources := copyResources.value,
+    managedProps := projectProps.value ++ systemProps.value ++ envProps.value,
     unmanagedPropsTask,
-    props <<= (extraProps, managedProps, unmanagedProps) map (_ ++ _ ++ _))
+    props := extraProps.value ++ managedProps.value ++ unmanagedProps.value)
+
   lazy val filterConfigSettings: Seq[Setting[_]] = filterConfigTasks ++ filterConfigPaths
 
   lazy val baseFilterSettings = Seq(
@@ -72,6 +89,7 @@ object Plugin extends sbt.Plugin {
     projectPropsTask,
     envProps := System.getenv.toSeq,
     systemProps := System.getProperties.stringPropertyNames.toSeq map (k => k -> System.getProperty(k)))
+
   lazy val filterSettings = baseFilterSettings ++ inConfig(Compile)(filterConfigSettings) ++ inConfig(Test)(filterConfigSettings)
 
   object ImageFileFilter extends FileFilter {
@@ -86,7 +104,7 @@ object Plugin extends sbt.Plugin {
   }
 
   object Filter {
-    import util.matching.Regex._
+    import scala.util.matching.Regex._
     import java.io.{ FileReader, BufferedReader, PrintWriter }
 
     val pattern = """((?:\\?)\$\{.+?\})""".r
@@ -114,4 +132,5 @@ object Plugin extends sbt.Plugin {
       }
     }
   }
+
 }
