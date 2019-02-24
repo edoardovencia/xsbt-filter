@@ -2,28 +2,32 @@ version := "0.1"
 
 name := "simple"
 
+scalaVersion := "2.12.8"
+
 import sbtfilter.Plugin._
 
 seq(filterSettings: _*)
 
-TaskKey[Unit]("check-compile") <<= (classDirectory in Compile) map { (cd) =>
+TaskKey[Unit]("check-compile") := {
+  val cd = (classDirectory in Compile).value
   val props = new java.util.Properties
   IO.load(props, cd / "sample.properties")
   if (props.getProperty("name") != "simple")
-    error("property not substituted")
+    sys.error("property not substituted")
   if (props.getProperty("homepage") != "http://localhost")
-    error("property not substituted")
+    sys.error("property not substituted")
   if (props.getProperty("anothername") != "${name}")
-    error("property substituted")
+    sys.error("property substituted")
   if (IO.read(cd / "sample.txt") != "This ${name} shouldn't be substituted.\n")
-    error("file filtered")
+    sys.error("file filtered")
   ()
 }
 
-TaskKey[Unit]("check-test") <<= (classDirectory in Test) map { (cd) =>
+TaskKey[Unit]("check-test") := {
+  val cd = (classDirectory in Compile).value
   val props = new java.util.Properties
   IO.load(props, cd / "sample.properties")
   if (props.getProperty("name") != "simple")
-    error("property not substituted")
+    sys.error("property not substituted")
   ()
 }

@@ -3,12 +3,13 @@ package sbtfilter
 import sbt._
 import Keys._
 import Defaults._
-import collection.JavaConversions._
 import java.io.File
 import java.util.Properties
 import sbt.Def.Initialize.joinInitialize
 import sbt.Def.macroValueI
 import sbt.Def.macroValueIT
+
+import scala.collection.JavaConverters._
 import scala.collection.Seq
 
 /* TODO
@@ -65,7 +66,7 @@ object Plugin extends sbt.AutoPlugin {
   lazy val unmanagedPropsTask = unmanagedProps := {
     val filtersValue = filters.value
     val streamsValue = streams.value
-    (Seq.empty[(String, String)] /: filtersValue) { (acc, rf) => acc ++ properties(streamsValue.log, rf) }
+    (Seq.empty[(String, String)] /: filtersValue) { (acc, rf) => acc ++ properties(streamsValue.log, rf).asScala }
   }
 
 
@@ -91,8 +92,8 @@ object Plugin extends sbt.AutoPlugin {
     filterDirectoryName := "filters",
     extraProps := Nil,
     projectPropsTask,
-    envProps := System.getenv.toSeq,
-    systemProps := System.getProperties.stringPropertyNames.toSeq map (k => k -> System.getProperty(k)))
+    envProps := System.getenv.asScala.toSeq,
+    systemProps := System.getProperties.stringPropertyNames.asScala.toSeq map (k => k -> System.getProperty(k)))
 
   lazy val filterSettings = baseFilterSettings ++ inConfig(Compile)(filterConfigSettings) ++ inConfig(Test)(filterConfigSettings)
 

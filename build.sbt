@@ -1,20 +1,18 @@
-version := "0.5-SNAPSHOT"
-
-sbtPlugin := true
-
 name := "xsbt-filter"
 
 organization := "eu.edoardovencia.sbt"
 
-seq(ScriptedPlugin.scriptedSettings: _*)
-
-scalaSource in Compile <<= baseDirectory { (base) => base / "src" }
-
-sbtTestDirectory <<= baseDirectory { (base) => base / "sbt-test" }
+version := "0.5-SNAPSHOT"
 
 scalaVersion := "2.12.8"
 
-crossScalaVersions := Seq("2.9.3", "2.10.7", "2.11.12", "2.12.8")
+scalacOptions ++= Seq("-deprecation", "-unchecked")
+
+sbtPlugin := true
+
+scalaSource in Compile := baseDirectory.value / "src"
+
+sbtTestDirectory := baseDirectory.value / "sbt-test"
 
 sbtVersion in Global := "1.0.3"
 
@@ -25,15 +23,15 @@ scalaCompilerBridgeSource := {
   ("org.scala-sbt" % "compiler-interface" % sv % "component").sources
 }
 
-scalacOptions ++= Seq("-deprecation", "-unchecked")
-
 licenses := Seq("New BSD License" -> url("http://opensource.org/licenses/BSD-3-Clause"))
 
 homepage := Some(url("http://edoardovencia.github.com/xsbt-filter/"))
 
-publishTo <<= version { v: String =>
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+publishTo := {
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT")) 
+  if (version.value.trim.endsWith("SNAPSHOT")) 
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else                             
     Some("releases" at nexus + "service/local/staging/deploy/maven2")
