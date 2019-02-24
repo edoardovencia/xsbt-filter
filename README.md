@@ -31,13 +31,13 @@ By default the plug-in looks for filter resources in a `filters` directory under
 
 Add the following to your plugin configuration (in `project/plugins/build.sbt`):
     
-    addSbtPlugin("eu.edoardovencia.sbt" % "xsbt-filter" % "0.4")
+    addSbtPlugin("eu.edoardovencia.sbt" % "xsbt-filter" % "0.5")
 
 If you want to use the latest snapshot version then you need to add the Sonatype OSS Maven repository:
 
     resolvers += "Sonatype OSS snapshots repository" at "https://oss.sonatype.org/content/repositories/snapshots/"
     
-    addSbtPlugin("eu.edoardovencia.sbt" % "xsbt-filter" % "0.5-SNAPSHOT")
+    addSbtPlugin("eu.edoardovencia.sbt" % "xsbt-filter" % "0.6-SNAPSHOT")
 
 Add the default filter settings to your project in `build.sbt`:
 
