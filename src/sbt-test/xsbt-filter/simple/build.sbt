@@ -4,9 +4,7 @@ name := "simple"
 
 scalaVersion := "2.12.8"
 
-import sbtfilter.Plugin._
-
-seq(filterSettings: _*)
+sbtfilter.Plugin.filterSettings
 
 TaskKey[Unit]("check-compile") := {
   val cd = (classDirectory in Compile).value

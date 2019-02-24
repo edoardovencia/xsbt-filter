@@ -6,13 +6,13 @@ version := "0.5-SNAPSHOT"
 
 scalaVersion := "2.12.8"
 
-scalacOptions ++= Seq("-deprecation", "-unchecked")
+scalacOptions ++= Seq(
+  "-deprecation",
+  "-unchecked",
+  "-encoding", "UTF-8"
+)
 
 sbtPlugin := true
-
-scalaSource in Compile := baseDirectory.value / "src"
-
-sbtTestDirectory := baseDirectory.value / "sbt-test"
 
 sbtVersion in Global := "1.0.3"
 
