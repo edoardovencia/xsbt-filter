@@ -8,4 +8,4 @@ branches:
     - master
 
 script:
-  - "sbt ++$TRAVIS_SCALA_VERSION 'set skip in PgpKeys.pgpSigner := true' scripted"
+  - "sbt ++$TRAVIS_SCALA_VERSION 'set skip in PgpKeys.pgpSigner := true' ^scripted"
